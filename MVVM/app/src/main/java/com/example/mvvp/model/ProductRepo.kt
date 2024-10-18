@@ -4,6 +4,7 @@ import com.example.downloadworker.model.Product
 import com.example.mvvp.Network.RemoteSource
 import com.example.mvvp.database.LocalSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class ProductRepo (private val remoteSource: RemoteSource, private val localSource : LocalSource)
@@ -27,7 +28,7 @@ class ProductRepo (private val remoteSource: RemoteSource, private val localSour
          localSource.deleteProduct(product)
     }
 
-    suspend fun getStoredProducts(): List<Product> {
+    suspend fun getStoredProducts(): Flow<List<Product>> {
         return localSource.getProducts()
     }
 

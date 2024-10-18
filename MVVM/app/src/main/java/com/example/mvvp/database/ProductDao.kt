@@ -7,13 +7,14 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.downloadworker.model.Product
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface ProductDao {
 
     @Query("SELECT * FROM products_table")
-    suspend fun getProducts(): List<Product>
+     fun getProducts(): Flow<List<Product>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertProducts(products: List<Product>)

@@ -15,8 +15,15 @@ class CartProductViewModel(private val repo: ProductRepo) : ViewModel() {
 
     fun fetchFavoriteProducts() {
         viewModelScope.launch {
-            val products = repo.getStoredProducts()
-            _favoriteProducts.value = products
+            try {
+                repo.getStoredProducts().collect { products ->
+                    _favoriteProducts.value = products
+                }
+            }catch (e: Exception)
+            {
+
+            }
+
         }
     }
 

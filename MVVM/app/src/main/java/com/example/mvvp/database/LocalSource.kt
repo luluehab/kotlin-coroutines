@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.downloadworker.database.ProductDB
 import com.example.downloadworker.database.ProductDao
 import com.example.downloadworker.model.Product
+import kotlinx.coroutines.flow.Flow
 
 
 class LocalSource(context: Context) {
@@ -11,7 +12,7 @@ class LocalSource(context: Context) {
     private val productDAO: ProductDao = ProductDB.getInstance(context).GetProductDao()
 
     // Fetches products in a non-blocking way
-    suspend fun getProducts() : List<Product> {
+    suspend fun getProducts() : Flow<List<Product>> {
         return productDAO.getProducts()  // Null safety can be handled here or upstream
 
     }

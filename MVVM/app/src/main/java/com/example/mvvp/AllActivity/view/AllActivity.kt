@@ -1,32 +1,42 @@
 package com.example.mvvp.AllActivity.view
 
 import android.os.Bundle
+import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mvvp.AllActivity.viewmodel.AllProductViewModel
 import com.example.mvvp.AllActivity.viewmodel.AllProductViewModelFactory
+import com.example.mvvp.Network.ProductState
 import com.example.mvvp.Network.RemoteSource
 import com.example.mvvp.R
 import com.example.mvvp.database.LocalSource
 import com.example.mvvp.model.ProductRepo
+import kotlinx.coroutines.launch
+import com.airbnb.lottie.LottieAnimationView
 
 class AllActivity : AppCompatActivity() {
     private lateinit var recyclerAdapter: ListAd
     private lateinit var viewModel: AllProductViewModel
     private lateinit var recyclerView: RecyclerView
-    private val TAG: String = "track"
+    private lateinit var progressBar: LottieAnimationView
+    private lateinit var errorImage: ImageView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_all)
         recyclerView = findViewById(R.id.cartRecyclerView)
-
+        progressBar = findViewById(R.id.lottieAnimationView);
+        errorImage =findViewById(R.id.errorImageView)
         val remoteDataSource = RemoteSource
         val localDataSource = LocalSource(applicationContext)
 
@@ -48,13 +58,41 @@ class AllActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.products.observe(this, Observer { products ->
+        /*viewModel.products.observe(this, Observer { products ->
             recyclerAdapter.submitList(products)
         })
 
         viewModel.error.observe(this, Observer { errorMsg ->
             // Show error message to the user
-        })
+        })*/
+        lifecycleScope.launch {
+            viewModel.products.collect { state ->
+                when (state) {
+                    is ProductState.Loading -> {
+                        progressBar.visibility = View.VISIBLE
+                        errorImage.visibility = View.GONE
+                    }
+                    is ProductState.Success -> {
+                        progressBar.visibility = View.GONE
+                        errorImage.visibility = View.GONE
+                        recyclerAdapter.submitList(state.products)
+                    }
+                    is ProductState.Error -> {
+                        progressBar.visibility = View.GONE
+                        errorImage.visibility = View.VISIBLE
+
+                    }
+                }
+            }
+        }
+
+        // Collecting error states
+        lifecycleScope.launch {
+            viewModel.error.collect { errorMsg ->
+                if (errorMsg != null) {
+                }
+            }
+        }
            //fetchProducts()
         viewModel.fetchProductsFromNetwork()
         }

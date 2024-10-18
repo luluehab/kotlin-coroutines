@@ -1,23 +1,24 @@
 package com.example.mvvp.model
 
+import android.util.Log
 import com.example.downloadworker.model.Product
 import com.example.mvvp.Network.RemoteSource
 import com.example.mvvp.database.LocalSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class ProductRepo (private val remoteSource: RemoteSource, private val localSource : LocalSource)
 {
-    suspend fun getAllProducts(): List<Product> = withContext(Dispatchers.IO){
+    suspend fun getAllProducts(): Flow<List<Product>> = flow{
         val responce = remoteSource.getProducts()
-        if(responce.isSuccessful)
-        {
-            responce.body()?.products ?: emptyList()
-        }
-        else{
-            throw Exception("Failed to fetch products from remote")
-        }
+        emit(responce.body()?.products ?: emptyList())
+
+    }.catch { exception ->
+        emit(emptyList())
+        Log.e("ProductFlow", "Error fetching products", exception)
     }
 
     suspend fun insertProduct(product: Product) = withContext(Dispatchers.IO) {
